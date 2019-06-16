@@ -24,7 +24,7 @@ public:
 	Map(int w, int h, int v);
 	~Map();
 	int* generateMap();
-	int* generateMapJoined(int numcells);
+	int* generateMapJoined(int numcells, int seedgroupsize);
 	
 	int getW();
 	int getH();
@@ -32,6 +32,7 @@ private:
 	intpair* generatePoints(int numPoints);
 	vcell* generateVoronoi();
 	vcell* layerMap(vcell* rawmap, int join);
+	vcell* layerMapComplex(vcell* rawmap, int join, int seedgroupsize);
 
 	int width, height;
 	int vseed;

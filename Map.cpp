@@ -89,6 +89,54 @@ vcell* Map::layerMap(vcell* rawmap, int vjoin) {
 
 	return output;
 }
+
+intpair averagePoints(intpair* group, int len) {
+	intpair output = intpair(0,0);
+	for (int i = 0; i < len; i++) {
+		output.x += group[i].x;
+		output.y += group[i].y;
+	}
+	output.x = ((double)output.x) / len;
+	output.y = ((double)output.y) / len;
+	return output;
+}
+
+vcell* Map::layerMapComplex(vcell * rawmap, int join, int seedgroupsize)
+{
+	intpair** initialPointGroups = new intpair*[join];
+	for (int i = 0; i < join; i++) {
+		initialPointGroups[i] = generatePoints(seedgroupsize);
+	}
+	vcell* output = new vcell[join];
+	std::uniform_real_distribution<double> cRNG{ 0, 1 };
+	for (int i = 0; i < join; i++) {
+		vcell cell;
+
+		cell.seed = averagePoints(initialPointGroups[i], join);
+		cell.color = 0xFF * cRNG(dev) + 0x0100 * (0xFF * cRNG(dev)) + 0x010000 * (0xFF * cRNG(dev));
+		output[i] = cell;
+	}
+	for (int j = 0; j < vseed; j++) {
+		float dist = INFINITY;
+		int icell = -1;
+		int ox = rawmap[j].seed.x;
+		int oy = rawmap[j].seed.y;
+		for (int i = 0; i < join; i++) {
+			for (int k = 0; k < seedgroupsize; k++) {
+				int vx = initialPointGroups[i][k].x;
+				int vy = initialPointGroups[i][k].y;
+				float vDist = (oy - vy) * (oy - vy) + (ox - vx) * (ox - vx);
+				if (vDist < dist) {
+					dist = vDist;
+					icell = i;
+				}
+			}
+		}
+		output[icell].ilist.insert(output[icell].ilist.end(), rawmap[j].ilist.begin(), rawmap[j].ilist.end());
+	}
+
+	return output;
+}
 int* Map::generateMap() {
 	vcell* vmap = generateVoronoi();
 	int* output = new int[width * height];
@@ -100,9 +148,15 @@ int* Map::generateMap() {
 	return output;
 }
 
-int * Map::generateMapJoined(int numcells)
+int * Map::generateMapJoined(int numcells, int seedgroupsize)
 {
-	vcell* vmap = layerMap(generateVoronoi(), numcells);
+	vcell* vmap;
+	if (seedgroupsize < 2) {
+		vmap = layerMap(generateVoronoi(), numcells);
+	}
+	else {
+		vmap = layerMapComplex(generateVoronoi(), numcells, seedgroupsize);
+	}
 	int* output = new int[width * height];
 	for (int i = 0; i < numcells; i++) {
 		for (int j = 0; j < vmap[i].ilist.size(); j++) {
