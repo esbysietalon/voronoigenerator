@@ -24,18 +24,17 @@ public:
 	Map(int w, int h, int v);
 	~Map();
 	int* generateMap();
-	int* generateMapJoined();
+	int* generateMapJoined(int numcells);
 	
 	int getW();
 	int getH();
 private:
 	intpair* generatePoints(int numPoints);
 	vcell* generateVoronoi();
-	vcell* layerMap(vcell* rawmap);
+	vcell* layerMap(vcell* rawmap, int join);
 
 	int width, height;
 	int vseed;
-	int vjoin;
 	int* map;
 	std::mt19937 dev{ time(NULL) };
 };

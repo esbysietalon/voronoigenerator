@@ -5,7 +5,6 @@ Map::Map(int w, int h, int v) {
 	width = w;
 	height = h;
 	vseed = v;
-	vjoin = (vseed / 100 > 2) ? vseed / 100 : 2;
 }
 
 Map::~Map()
@@ -60,7 +59,7 @@ vcell* Map::generateVoronoi() {
 	return output;
 }
 
-vcell* Map::layerMap(vcell* rawmap) {
+vcell* Map::layerMap(vcell* rawmap, int vjoin) {
 	intpair* initialPoints = generatePoints(vjoin);
 	vcell* output = new vcell[vjoin];
 	std::uniform_real_distribution<double> cRNG{ 0, 1 };
@@ -101,11 +100,11 @@ int* Map::generateMap() {
 	return output;
 }
 
-int * Map::generateMapJoined()
+int * Map::generateMapJoined(int numcells)
 {
-	vcell* vmap = layerMap(generateVoronoi());
+	vcell* vmap = layerMap(generateVoronoi(), numcells);
 	int* output = new int[width * height];
-	for (int i = 0; i < vjoin; i++) {
+	for (int i = 0; i < numcells; i++) {
 		for (int j = 0; j < vmap[i].ilist.size(); j++) {
 			output[vmap[i].ilist.at(j)] = vmap[i].color;
 		}
