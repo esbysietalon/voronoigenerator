@@ -17,21 +17,25 @@ struct intpair {
 struct vcell {
 	std::vector<int> ilist;
 	int color;
+	intpair seed;
 };
 class Map {
 public:
 	Map(int w, int h, int v);
 	~Map();
 	int* generateMap();
-	int* getColorMap();
+	int* generateMapJoined();
+	
 	int getW();
 	int getH();
 private:
 	intpair* generatePoints(int numPoints);
 	vcell* generateVoronoi();
-	
+	vcell* layerMap(vcell* rawmap);
+
 	int width, height;
 	int vseed;
+	int vjoin;
 	int* map;
 	std::mt19937 dev{ time(NULL) };
 };

@@ -9,9 +9,9 @@
 int main(int argc, char** argv)
 {
 	Skeleton s(800, 600);
-	Map map(800, 600, 100);
+	Map map(800, 600, 400);
 
-	int maptexture = s.createTexture(map.generateMap(), map.getW(), map.getH());
+	int maptexture = s.createTexture(map.generateMapJoined(), map.getW(), map.getH());
 	s.createSprite(maptexture, 0, 0);
 	
 	std::function<void()>* farr = new std::function<void()>[1];

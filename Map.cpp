@@ -5,6 +5,7 @@ Map::Map(int w, int h, int v) {
 	width = w;
 	height = h;
 	vseed = v;
+	vjoin = (vseed / 100 > 2) ? vseed / 100 : 2;
 }
 
 Map::~Map()
@@ -35,6 +36,7 @@ vcell* Map::generateVoronoi() {
 	for (int i = 0; i < vseed; i++) {
 		vcell cell;
 		cell.color = 0xFF * cRNG(dev) + 0x0100 * (0xFF * cRNG(dev)) + 0x010000 * (0xFF * cRNG(dev));
+		cell.seed = initialPoints[i];
 		output[i] = cell;
 	}
 
@@ -58,10 +60,52 @@ vcell* Map::generateVoronoi() {
 	return output;
 }
 
+vcell* Map::layerMap(vcell* rawmap) {
+	intpair* initialPoints = generatePoints(vjoin);
+	vcell* output = new vcell[vjoin];
+	std::uniform_real_distribution<double> cRNG{ 0, 1 };
+	for (int i = 0; i < vjoin; i++) {
+		vcell cell;
+		cell.seed = initialPoints[i];
+		cell.color = 0xFF * cRNG(dev) + 0x0100 * (0xFF * cRNG(dev)) + 0x010000 * (0xFF * cRNG(dev));
+		output[i] = cell;
+	}
+	for (int j = 0; j < vseed; j++) {
+		float dist = INFINITY;
+		int icell = -1;
+		int ox = rawmap[j].seed.x;
+		int oy = rawmap[j].seed.y;
+		for (int i = 0; i < vjoin; i++) {
+			int vx = initialPoints[i].x;
+			int vy = initialPoints[i].y;
+
+			float vDist = (oy - vy) * (oy - vy) + (ox - vx) * (ox - vx);
+			if (vDist < dist) {
+				dist = vDist;
+				icell = i;
+			}
+		}
+		output[icell].ilist.insert(output[icell].ilist.end(), rawmap[j].ilist.begin(), rawmap[j].ilist.end());
+	}
+
+	return output;
+}
 int* Map::generateMap() {
 	vcell* vmap = generateVoronoi();
 	int* output = new int[width * height];
 	for (int i = 0; i < vseed; i++) {
+		for (int j = 0; j < vmap[i].ilist.size(); j++) {
+			output[vmap[i].ilist.at(j)] = vmap[i].color;
+		}
+	}
+	return output;
+}
+
+int * Map::generateMapJoined()
+{
+	vcell* vmap = layerMap(generateVoronoi());
+	int* output = new int[width * height];
+	for (int i = 0; i < vjoin; i++) {
 		for (int j = 0; j < vmap[i].ilist.size(); j++) {
 			output[vmap[i].ilist.at(j)] = vmap[i].color;
 		}
@@ -74,11 +118,4 @@ int Map::getW() {
 }
 int Map::getH() {
 	return height;
-}
-
-int* Map::getColorMap() {
-	int* cmap = new int[width * height];
-	for (int i = 0; i < width * height; i++)
-		cmap[i] = 0x00ff00;
-	return cmap;
 }
